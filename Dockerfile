@@ -1,12 +1,27 @@
 FROM otechlabs/busybox:latest
 
-RUN opkg-install curl
+RUN opkg-install curl bash libncurses libstdcpp
 
 # Java Version
 ENV JAVA_VERSION_MAJOR 8
 ENV JAVA_VERSION_MINOR 60
 ENV JAVA_VERSION_BUILD 27
 ENV JAVA_PACKAGE jdk
+
+# Download and extract mysql binary.
+RUN mkdir /tmp/mysql_install.d &&\
+    cd /tmp/mysql_install.d &&\
+    curl -k -L -O https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.17-linux-glibc2.5-x86_64.tar &&\
+    mv mysql-5.7.17-linux-glibc2.5-x86_64.tar mysql.tar &&\
+    tar -xf mysql.tar &&\
+    gunzip mysql-5.7.17-linux-glibc2.5-x86_64.tar.gz &&\
+    tar -xf mysql-5.7.17-linux-glibc2.5-x86_64.tar mysql-5.7.17-linux-glibc2.5-x86_64/bin/mysql &&\
+    cp mysql-5.7.17-linux-glibc2.5-x86_64/bin/mysql /usr/bin &&\
+    cd /tmp &&\
+    rm -r mysql_install.d &&\
+    cd /usr/lib &&\
+    ln -s libncurses.so libncurses.so.5 &&\
+    cd
 
 # Download and unarchive Java
 RUN curl -kLOH "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie"\
@@ -46,4 +61,3 @@ RUN curl -s -k -L -C - -b "oraclelicense=accept-securebackup-cookie" http://down
 # Set environment
 ENV JAVA_HOME /opt/jdk
 ENV PATH ${PATH}:${JAVA_HOME}/bin
-
